@@ -164,3 +164,7 @@ CORS_ALLOWED_ORIGINS = [
 ]
 
 AUTH_USER_MODEL = 'users.User'
+
+REST_FRAMEWORK = {
+    'DEFAULT_RENDERER_CLASSES':('rest_framework.renderers.JSONRenderer',)
+}
