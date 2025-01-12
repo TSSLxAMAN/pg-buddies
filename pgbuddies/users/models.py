@@ -4,14 +4,18 @@ from django.contrib.auth.models import AbstractBaseUser, BaseUserManager
 # Create your models here.
 
 class UserManager(BaseUserManager):
-    def create_user(self, email, name, tc, password=None, password2=None):
+    def create_user(self, email, name, mobile, tc, password=None, password2=None ):
         
         if not email:
             raise ValueError("Users must have an email address")
+        
+        if not mobile:
+            raise ValueError("Users must have a mobile number")
 
         user = self.model(
             email=self.normalize_email(email),
             name=name,
+            mobile=mobile,
             tc=tc,
 
         )
@@ -20,7 +24,7 @@ class UserManager(BaseUserManager):
         user.save(using=self._db)
         return user
 
-    def create_superuser(self, email, name, tc, password=None):
+    def create_superuser(self, email, name, mobile, tc, password=None, ):
         """
         Creates and saves a superuser with the given email, date of
         birth and password.
@@ -29,8 +33,8 @@ class UserManager(BaseUserManager):
             email,
             password=password,
             name=name,
+            mobile=mobile,
             tc=tc,
-
         )
         user.is_admin = True
         user.save(using=self._db)
@@ -43,6 +47,7 @@ class User(AbstractBaseUser):
         unique=True,
     )
     name = models.CharField(max_length=255)
+    mobile = models.CharField(max_length=15, unique=True, null=True, blank=True)
     tc = models.BooleanField()
     is_active = models.BooleanField(default=True)
     is_admin = models.BooleanField(default=False)
@@ -52,7 +57,7 @@ class User(AbstractBaseUser):
     objects = UserManager()
 
     USERNAME_FIELD = 'email'
-    REQUIRED_FIELDS = ['name','tc']
+    REQUIRED_FIELDS = ['name','tc','mobile']
 
     def __str__(self):
         return self.email
@@ -72,3 +77,14 @@ class User(AbstractBaseUser):
         "Is the user a member of staff?"
         # Simplest possible answer: All admins are staff
         return self.is_admin
+    
+import random
+
+class OTP(models.Model):
+    mobile = models.CharField(max_length=15)
+    otp = models.CharField(max_length=6)
+    created_at = models.DateTimeField(auto_now_add=True)
+
+    def save(self, *args, **kwargs):
+        self.otp = str(random.randint(100000, 999999))
+        super().save(*args, **kwargs)
